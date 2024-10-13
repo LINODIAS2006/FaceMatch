@@ -1,0 +1,2 @@
+2024-10-13 18:00:55,338 - INFO - O sistema foi iniciado.
+2024-10-13 18:01:15,128 - INFO - Administrador admin fez login com sucesso.
