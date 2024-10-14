@@ -1,21 +1,38 @@
+import os
 import sqlite3
+import sys
 
 class Database:
     @staticmethod
+    def get_db_path():
+        # Verifica se o programa está sendo executado como executável gerado por PyInstaller
+        if getattr(sys, 'frozen', False):
+            base_dir = sys._MEIPASS  # Caminho temporário onde os arquivos são extraídos no executável
+        else:
+            base_dir = os.path.dirname(os.path.abspath(__file__))  # Caminho do arquivo Python
+
+        # Retorna o caminho absoluto do banco de dados
+        return os.path.join(base_dir, 'photo_app.db')
+
+    @staticmethod
     def connect():
-        return sqlite3.connect("photo_app.db")
+        # Conecta ao banco de dados usando o caminho dinâmico
+        return sqlite3.connect(Database.get_db_path())
 
     @staticmethod
     def initialize_db():
         with Database.connect() as conn:
             cursor = conn.cursor()
-            # Cria a tabela de usuários
+
+            # Criação da tabela de usuários
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS users (
                     username TEXT PRIMARY KEY,
                     password TEXT NOT NULL
                 )
             """)
+
+            # Criação da tabela de fotos
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS photos (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -25,6 +42,7 @@ class Database:
                     FOREIGN KEY(username) REFERENCES users(username)
                 )
             """)
+
             conn.commit()
 
             # Verifica se o administrador padrão já está no banco de dados

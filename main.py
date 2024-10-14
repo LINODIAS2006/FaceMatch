@@ -1,6 +1,10 @@
 import logging
 import tkinter as tk
 from controllers.login_controller import LoginController
+from models.database import Database  # Importe o banco de dados
+
+# Inicialize o banco de dados ao iniciar o programa
+Database.initialize_db()
 
 # Configuração básica de logging
 logging.basicConfig(

@@ -1,36 +1,36 @@
 import tensorflow as tf
-from PIL import Image
+from tensorflow.keras.preprocessing import image
 import numpy as np
 
 class ImageProcessor:
-    @staticmethod
-    def process_image(file_path):
-        # Abre a imagem e converte para grayscale
-        image = Image.open(file_path).convert('L')
-        image = image.resize((28, 28))  # Redimensiona para 28x28 pixels
-        image_array = np.array(image)
-
-        # Converte a imagem para um array de float32
-        image_array = image_array.astype('float32') / 255.0
-        image_array = image_array.reshape(1, 28, 28, 1)  # Adiciona dimensões para o TensorFlow
-
-        # Modelo simples para fazer uma previsão
-        model = ImageProcessor.build_model()
-        prediction = model.predict(image_array)
-
-        # Retorna o grupo de imagem
-        group = np.argmax(prediction, axis=1)[0]
-        return f"Grupo {group}"
+    model = None
 
     @staticmethod
-    def build_model():
-        # Modelo simples para classificar imagens em 2 grupos
-        model = tf.keras.Sequential([
-            tf.keras.layers.Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=(28, 28, 1)),
-            tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
-            tf.keras.layers.Flatten(),
-            tf.keras.layers.Dense(128, activation='relu'),
-            tf.keras.layers.Dense(2, activation='softmax')  # 2 grupos: Grupo 0 e Grupo 1
-        ])
-        model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-        return model
+    def load_model():
+        if ImageProcessor.model is None:
+            try:
+                # Carregue o modelo de rede neural previamente treinado (substitua pelo caminho correto do modelo)
+                ImageProcessor.model = tf.keras.models.load_model("caminho_do_modelo/model.h5")
+            except Exception as e:
+                raise RuntimeError(f"Erro ao carregar o modelo: {str(e)}")
+
+    @staticmethod
+    def process_image(img_path):
+        try:
+            # Carrega e pré-processa a imagem
+            img = image.load_img(img_path, target_size=(224, 224))  # Altere o tamanho de entrada conforme necessário
+            img_array = image.img_to_array(img)
+            img_array = np.expand_dims(img_array, axis=0)
+            img_array /= 255.0  # Normaliza a imagem se necessário
+
+            # Certifica-se de que o modelo está carregado
+            ImageProcessor.load_model()
+
+            # Faz a predição usando a rede neural
+            predictions = ImageProcessor.model.predict(img_array)
+
+            # Assumindo que a saída é binária, aplica um limiar de 0.5
+            predicted_class = (predictions > 0.5).astype(int)  # Saída binária (0 ou 1)
+            return f"Classe prevista: {predicted_class[0][0]}"
+        except Exception as e:
+            raise RuntimeError(f"Erro ao processar a imagem {img_path}: {str(e)}")
